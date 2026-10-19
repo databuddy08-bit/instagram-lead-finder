@@ -1,0 +1,178 @@
+{
+    "title": "Instagram Lead Finder input",
+    "description": "Give Instagram usernames or profile URLs. The actor returns profile data, contact details, engagement, influencer tier and a lead score for each.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "usernames": {
+            "title": "Instagram usernames or profile URLs",
+            "type": "array",
+            "description": "One per line. Accepts plain handles (natgeo), handles with @ (@natgeo) or profile URLs (https://www.instagram.com/natgeo/). Duplicates are removed automatically.",
+            "editor": "stringList",
+            "prefill": ["natgeo", "garyvee", "hubspot"],
+            "sectionCaption": "Profiles"
+        },
+        "maxResults": {
+            "title": "Max profiles to save",
+            "type": "integer",
+            "description": "Stop after this many profiles are saved (and charged). 0 = no limit.",
+            "minimum": 0,
+            "default": 0
+        },
+        "scrapeRelatedProfiles": {
+            "title": "Also scrape related profiles (discovery)",
+            "type": "boolean",
+            "description": "Instagram shows 'similar accounts' on many profiles. When on, those accounts are added to the queue and scraped too (one level deep). Great for finding more influencers in the same niche.",
+            "default": false,
+            "sectionCaption": "Discovery & enrichment"
+        },
+        "maxRelatedPerProfile": {
+            "title": "Max related profiles per input profile",
+            "type": "integer",
+            "description": "How many related accounts to follow from each input profile when discovery is on.",
+            "minimum": 1,
+            "maximum": 80,
+            "default": 10
+        },
+        "scanBioLinks": {
+            "title": "Scan link-in-bio pages for emails & phones",
+            "type": "boolean",
+            "description": "Opens the external URL and bio links (Linktree, Beacons, Stan, websites…) and collects public emails and phone numbers found there. Slower, but finds far more contacts. Each contact found this way shows its source page in the evidence column.",
+            "default": false
+        },
+        "includeRecentPosts": {
+            "title": "Include recent posts",
+            "type": "boolean",
+            "description": "Add the latest posts (likes, comments, video views, caption, URL) to each profile. Engagement rate is calculated from these posts either way.",
+            "default": true
+        },
+        "recentPostsLimit": {
+            "title": "Posts used for engagement",
+            "type": "integer",
+            "description": "How many of the latest posts to analyse (Instagram returns up to 12 without login).",
+            "minimum": 1,
+            "maximum": 12,
+            "default": 12
+        },
+        "excludePinnedPosts": {
+            "title": "Exclude pinned posts from engagement",
+            "type": "boolean",
+            "description": "Pinned posts are often old viral posts and inflate engagement. When on, they are left out of the engagement rate.",
+            "default": true
+        },
+        "minFollowers": {
+            "title": "Min followers",
+            "type": "integer",
+            "description": "Skip profiles with fewer followers. 0 = no minimum.",
+            "minimum": 0,
+            "default": 0,
+            "sectionCaption": "Filters (filtered profiles are never charged)"
+        },
+        "maxFollowers": {
+            "title": "Max followers",
+            "type": "integer",
+            "description": "Skip profiles with more followers. 0 = no maximum.",
+            "minimum": 0,
+            "default": 0
+        },
+        "influencerTiers": {
+            "title": "Influencer tiers to keep",
+            "type": "array",
+            "description": "Keep only these tiers. Leave empty to keep all. Tiers: under 1K = sub-nano, 1K–10K = nano, 10K–100K = micro, 100K–1M = macro, 1M+ = mega.",
+            "editor": "select",
+            "items": {
+                "type": "string",
+                "enum": ["sub-nano", "nano", "micro", "macro", "mega"],
+                "enumTitles": ["Sub-nano (<1K)", "Nano (1K–10K)", "Micro (10K–100K)", "Macro (100K–1M)", "Mega (1M+)"]
+            },
+            "default": []
+        },
+        "onlyWithContact": {
+            "title": "Only profiles with an email or phone",
+            "type": "boolean",
+            "description": "Skip profiles where no public email or phone number was found.",
+            "default": false
+        },
+        "onlyBusinessAccounts": {
+            "title": "Only business / creator accounts",
+            "type": "boolean",
+            "description": "Skip personal accounts. Keeps profiles Instagram marks as business or professional.",
+            "default": false
+        },
+        "minLeadGrade": {
+            "title": "Minimum lead grade",
+            "type": "string",
+            "description": "Skip profiles below this grade. A = Hot (75–100), B = Warm (50–74), C = Cool (25–49), D = Cold (0–24).",
+            "editor": "select",
+            "enum": ["A", "B", "C", "D"],
+            "enumTitles": ["A - Hot leads only", "B - Warm and better", "C - Cool and better", "D - Keep all grades"],
+            "default": "D"
+        },
+        "minEngagementRate": {
+            "title": "Min engagement rate (%)",
+            "type": "number",
+            "description": "Skip profiles with a lower engagement rate, e.g. 1.5 for 1.5%. 0 = no minimum.",
+            "minimum": 0,
+            "default": 0
+        },
+        "includeUnclearEngagement": {
+            "title": "Keep profiles with unknown engagement",
+            "type": "boolean",
+            "description": "When a min engagement rate is set, profiles where engagement cannot be measured (private, no posts, hidden likes) are kept if this is on and skipped if off. Their engagement fields stay empty — never guessed.",
+            "default": true
+        },
+        "includePrivateAccounts": {
+            "title": "Include private accounts",
+            "type": "boolean",
+            "description": "Private accounts still show bio, follower counts and business contact, but no posts. Turn off to skip them.",
+            "default": true
+        },
+        "bioKeywords": {
+            "title": "Bio keywords",
+            "type": "array",
+            "description": "Keep only profiles whose name, bio or category matches at least one of these keywords (e.g. 'real estate', 'fitness coach', 'ecommerce'). Leave empty to keep all. Hyphens, accents, capitals and simple plurals are treated as equal (e-commerce = ecommerce = E-Commerce).",
+            "editor": "stringList",
+            "default": []
+        },
+        "keywordMatchMode": {
+            "title": "Keyword match mode",
+            "type": "string",
+            "description": "Exact phrase: the words must appear together in order. All words: every word must appear anywhere. Any word: one word is enough. Off: ignore bio keywords.",
+            "editor": "select",
+            "enum": ["exact", "all", "any", "off"],
+            "enumTitles": ["Exact phrase", "All words", "Any word", "Off"],
+            "default": "exact"
+        },
+        "skipPreviouslyScraped": {
+            "title": "Skip profiles saved in previous runs",
+            "type": "boolean",
+            "description": "Remembers every saved username in a named key-value store and skips them in later runs. Useful for scheduled runs so you only pay for new leads.",
+            "default": false,
+            "sectionCaption": "Deduplication"
+        },
+        "dedupeStoreName": {
+            "title": "Memory store name",
+            "type": "string",
+            "description": "Name of the key-value store that remembers saved usernames. Use different names to keep separate lists. Lowercase letters, numbers and hyphens only.",
+            "editor": "textfield",
+            "pattern": "^[a-z0-9-]{1,63}$",
+            "default": "instagram-lead-finder-seen"
+        },
+        "proxyConfiguration": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Instagram blocks datacenter IPs. Apify Residential proxy is strongly recommended.",
+            "editor": "proxy",
+            "prefill": {
+                "useApifyProxy": true,
+                "apifyProxyGroups": ["RESIDENTIAL"]
+            },
+            "default": {
+                "useApifyProxy": true,
+                "apifyProxyGroups": ["RESIDENTIAL"]
+            },
+            "sectionCaption": "Proxy"
+        }
+    },
+    "required": ["usernames"]
+}

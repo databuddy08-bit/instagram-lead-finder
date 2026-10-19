@@ -1,0 +1,462 @@
+{
+    "actorSpecification": 1,
+    "fields": {},
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "username",
+                    "full_name",
+                    "profile_url",
+                    "lead_grade",
+                    "lead_score",
+                    "influencer_tier",
+                    "followers",
+                    "following",
+                    "posts_count",
+                    "engagement_rate_pct",
+                    "avg_likes",
+                    "avg_comments",
+                    "avg_video_views",
+                    "posts_analyzed",
+                    "engagement_note",
+                    "primary_email",
+                    "primary_phone",
+                    "business_email",
+                    "business_phone",
+                    "emails_found",
+                    "phones_found",
+                    "emails_from_links",
+                    "phones_from_links",
+                    "all_emails",
+                    "all_phones",
+                    "has_contact",
+                    "contact_evidence",
+                    "biography",
+                    "category",
+                    "business_category",
+                    "business_address",
+                    "external_url",
+                    "bio_links",
+                    "is_verified",
+                    "is_business_account",
+                    "is_professional_account",
+                    "is_private",
+                    "igtv_count",
+                    "highlight_reel_count",
+                    "has_reels",
+                    "pronouns",
+                    "last_post_at",
+                    "days_since_last_post",
+                    "avg_days_between_posts",
+                    "lead_score_reasons",
+                    "keyword_match_evidence",
+                    "related_profiles_count",
+                    "related_profiles",
+                    "recent_posts",
+                    "profile_pic_url_hd",
+                    "profile_pic_url",
+                    "user_id",
+                    "source",
+                    "input_value",
+                    "scraped_at"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "username": {
+                        "label": "Username",
+                        "format": "text"
+                    },
+                    "full_name": {
+                        "label": "Full name",
+                        "format": "text"
+                    },
+                    "profile_url": {
+                        "label": "Profile URL",
+                        "format": "link"
+                    },
+                    "lead_grade": {
+                        "label": "Lead grade",
+                        "format": "text"
+                    },
+                    "lead_score": {
+                        "label": "Lead score",
+                        "format": "number"
+                    },
+                    "influencer_tier": {
+                        "label": "Influencer tier",
+                        "format": "text"
+                    },
+                    "followers": {
+                        "label": "Followers",
+                        "format": "number"
+                    },
+                    "following": {
+                        "label": "Following",
+                        "format": "number"
+                    },
+                    "posts_count": {
+                        "label": "Posts",
+                        "format": "number"
+                    },
+                    "engagement_rate_pct": {
+                        "label": "Engagement rate %",
+                        "format": "number"
+                    },
+                    "avg_likes": {
+                        "label": "Avg likes",
+                        "format": "number"
+                    },
+                    "avg_comments": {
+                        "label": "Avg comments",
+                        "format": "number"
+                    },
+                    "avg_video_views": {
+                        "label": "Avg video views",
+                        "format": "number"
+                    },
+                    "posts_analyzed": {
+                        "label": "Posts analysed",
+                        "format": "number"
+                    },
+                    "engagement_note": {
+                        "label": "Engagement note",
+                        "format": "text"
+                    },
+                    "primary_email": {
+                        "label": "Primary email",
+                        "format": "text"
+                    },
+                    "primary_phone": {
+                        "label": "Primary phone",
+                        "format": "text"
+                    },
+                    "business_email": {
+                        "label": "Business email",
+                        "format": "text"
+                    },
+                    "business_phone": {
+                        "label": "Business phone",
+                        "format": "text"
+                    },
+                    "emails_found": {
+                        "label": "Emails found (bio)",
+                        "format": "array"
+                    },
+                    "phones_found": {
+                        "label": "Phones found (bio)",
+                        "format": "array"
+                    },
+                    "emails_from_links": {
+                        "label": "Emails from bio links",
+                        "format": "array"
+                    },
+                    "phones_from_links": {
+                        "label": "Phones from bio links",
+                        "format": "array"
+                    },
+                    "all_emails": {
+                        "label": "All emails",
+                        "format": "array"
+                    },
+                    "all_phones": {
+                        "label": "All phones",
+                        "format": "array"
+                    },
+                    "has_contact": {
+                        "label": "Has contact",
+                        "format": "boolean"
+                    },
+                    "contact_evidence": {
+                        "label": "Contact evidence",
+                        "format": "array"
+                    },
+                    "biography": {
+                        "label": "Biography",
+                        "format": "text"
+                    },
+                    "category": {
+                        "label": "Category",
+                        "format": "text"
+                    },
+                    "business_category": {
+                        "label": "Business category",
+                        "format": "text"
+                    },
+                    "business_address": {
+                        "label": "Business address",
+                        "format": "text"
+                    },
+                    "external_url": {
+                        "label": "External URL",
+                        "format": "link"
+                    },
+                    "bio_links": {
+                        "label": "Bio links",
+                        "format": "array"
+                    },
+                    "is_verified": {
+                        "label": "Verified",
+                        "format": "boolean"
+                    },
+                    "is_business_account": {
+                        "label": "Business account",
+                        "format": "boolean"
+                    },
+                    "is_professional_account": {
+                        "label": "Professional account",
+                        "format": "boolean"
+                    },
+                    "is_private": {
+                        "label": "Private",
+                        "format": "boolean"
+                    },
+                    "igtv_count": {
+                        "label": "IGTV count",
+                        "format": "number"
+                    },
+                    "highlight_reel_count": {
+                        "label": "Highlight reels",
+                        "format": "number"
+                    },
+                    "has_reels": {
+                        "label": "Has reels",
+                        "format": "boolean"
+                    },
+                    "pronouns": {
+                        "label": "Pronouns",
+                        "format": "array"
+                    },
+                    "last_post_at": {
+                        "label": "Last post",
+                        "format": "date"
+                    },
+                    "days_since_last_post": {
+                        "label": "Days since last post",
+                        "format": "number"
+                    },
+                    "avg_days_between_posts": {
+                        "label": "Avg days between posts",
+                        "format": "number"
+                    },
+                    "lead_score_reasons": {
+                        "label": "Lead score reasons",
+                        "format": "array"
+                    },
+                    "keyword_match_evidence": {
+                        "label": "Keyword match evidence",
+                        "format": "text"
+                    },
+                    "related_profiles_count": {
+                        "label": "Related profiles",
+                        "format": "number"
+                    },
+                    "related_profiles": {
+                        "label": "Related profiles (list)",
+                        "format": "array"
+                    },
+                    "recent_posts": {
+                        "label": "Recent posts",
+                        "format": "array"
+                    },
+                    "profile_pic_url_hd": {
+                        "label": "Profile pic (HD)",
+                        "format": "image"
+                    },
+                    "profile_pic_url": {
+                        "label": "Profile pic",
+                        "format": "link"
+                    },
+                    "user_id": {
+                        "label": "User ID",
+                        "format": "text"
+                    },
+                    "source": {
+                        "label": "Source",
+                        "format": "text"
+                    },
+                    "input_value": {
+                        "label": "Input",
+                        "format": "text"
+                    },
+                    "scraped_at": {
+                        "label": "Scraped at",
+                        "format": "date"
+                    }
+                }
+            }
+        },
+        "contacts": {
+            "title": "Contacts only",
+            "transformation": {
+                "fields": [
+                    "username",
+                    "full_name",
+                    "profile_url",
+                    "lead_grade",
+                    "influencer_tier",
+                    "followers",
+                    "engagement_rate_pct",
+                    "primary_email",
+                    "primary_phone",
+                    "all_emails",
+                    "all_phones",
+                    "contact_evidence",
+                    "category",
+                    "external_url"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "username": {
+                        "label": "Username",
+                        "format": "text"
+                    },
+                    "full_name": {
+                        "label": "Full name",
+                        "format": "text"
+                    },
+                    "profile_url": {
+                        "label": "Profile URL",
+                        "format": "link"
+                    },
+                    "lead_grade": {
+                        "label": "Lead grade",
+                        "format": "text"
+                    },
+                    "influencer_tier": {
+                        "label": "Influencer tier",
+                        "format": "text"
+                    },
+                    "followers": {
+                        "label": "Followers",
+                        "format": "number"
+                    },
+                    "engagement_rate_pct": {
+                        "label": "Engagement rate %",
+                        "format": "number"
+                    },
+                    "primary_email": {
+                        "label": "Primary email",
+                        "format": "text"
+                    },
+                    "primary_phone": {
+                        "label": "Primary phone",
+                        "format": "text"
+                    },
+                    "all_emails": {
+                        "label": "All emails",
+                        "format": "array"
+                    },
+                    "all_phones": {
+                        "label": "All phones",
+                        "format": "array"
+                    },
+                    "contact_evidence": {
+                        "label": "Contact evidence",
+                        "format": "array"
+                    },
+                    "category": {
+                        "label": "Category",
+                        "format": "text"
+                    },
+                    "external_url": {
+                        "label": "External URL",
+                        "format": "link"
+                    }
+                }
+            }
+        },
+        "influencers": {
+            "title": "Influencer metrics",
+            "transformation": {
+                "fields": [
+                    "username",
+                    "full_name",
+                    "profile_url",
+                    "influencer_tier",
+                    "followers",
+                    "engagement_rate_pct",
+                    "avg_likes",
+                    "avg_comments",
+                    "avg_video_views",
+                    "posts_analyzed",
+                    "last_post_at",
+                    "days_since_last_post",
+                    "avg_days_between_posts",
+                    "is_verified",
+                    "category"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "username": {
+                        "label": "Username",
+                        "format": "text"
+                    },
+                    "full_name": {
+                        "label": "Full name",
+                        "format": "text"
+                    },
+                    "profile_url": {
+                        "label": "Profile URL",
+                        "format": "link"
+                    },
+                    "influencer_tier": {
+                        "label": "Influencer tier",
+                        "format": "text"
+                    },
+                    "followers": {
+                        "label": "Followers",
+                        "format": "number"
+                    },
+                    "engagement_rate_pct": {
+                        "label": "Engagement rate %",
+                        "format": "number"
+                    },
+                    "avg_likes": {
+                        "label": "Avg likes",
+                        "format": "number"
+                    },
+                    "avg_comments": {
+                        "label": "Avg comments",
+                        "format": "number"
+                    },
+                    "avg_video_views": {
+                        "label": "Avg video views",
+                        "format": "number"
+                    },
+                    "posts_analyzed": {
+                        "label": "Posts analysed",
+                        "format": "number"
+                    },
+                    "last_post_at": {
+                        "label": "Last post",
+                        "format": "date"
+                    },
+                    "days_since_last_post": {
+                        "label": "Days since last post",
+                        "format": "number"
+                    },
+                    "avg_days_between_posts": {
+                        "label": "Avg days between posts",
+                        "format": "number"
+                    },
+                    "is_verified": {
+                        "label": "Verified",
+                        "format": "boolean"
+                    },
+                    "category": {
+                        "label": "Category",
+                        "format": "text"
+                    }
+                }
+            }
+        }
+    }
+}

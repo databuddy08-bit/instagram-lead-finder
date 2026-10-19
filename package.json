@@ -1,0 +1,24 @@
+{
+    "name": "instagram-lead-finder",
+    "version": "1.0.0",
+    "description": "Instagram profile scraper for lead generation: emails, phones, engagement rate, influencer tier and lead score.",
+    "type": "module",
+    "main": "src/main.js",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "start": "node src/main.js",
+        "test": "node --test test/unit.test.js",
+        "validate-schema": "node test/validate-schemas.js"
+    },
+    "dependencies": {
+        "apify": "^3.4.0",
+        "got-scraping": "^4.1.1"
+    },
+    "devDependencies": {
+        "@apify/input_schema": "^3.17.0",
+        "ajv": "^8.17.1"
+    },
+    "license": "UNLICENSED"
+}

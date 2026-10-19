@@ -1,0 +1,18 @@
+{
+    "actorSpecification": 1,
+    "name": "instagram-lead-finder",
+    "title": "Instagram Lead Finder — Email, Phone & Influencer Scraper",
+    "description": "Bulk Instagram profile scraper for lead generation and influencer research: emails and phones (bio, business contact, link-in-bio pages), engagement rate, influencer tier, lead score A–D and related profiles.",
+    "version": "1.0",
+    "buildTag": "latest",
+    "meta": {
+        "templateId": "js-empty"
+    },
+    "input": "./input_schema.json",
+    "output": "./output_schema.json",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    },
+    "dockerfile": "../Dockerfile",
+    "readme": "../README.md"
+}

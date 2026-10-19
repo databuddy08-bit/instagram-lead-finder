@@ -1,0 +1,21 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Instagram Lead Finder output",
+    "properties": {
+        "profiles": {
+            "type": "string",
+            "title": "Lead profiles (Overview)",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=overview"
+        },
+        "contacts": {
+            "type": "string",
+            "title": "Profiles with contacts",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=contacts"
+        },
+        "runSummary": {
+            "type": "string",
+            "title": "Run summary (saved, skipped and why)",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/RUN_SUMMARY"
+        }
+    }
+}
