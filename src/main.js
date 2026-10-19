@@ -44,6 +44,7 @@ const opts = {
     includePrivateAccounts: input.includePrivateAccounts !== false,
     keywordMatchMode: ['exact', 'all', 'any', 'off'].includes(input.keywordMatchMode) ? input.keywordMatchMode : 'exact',
     skipPreviouslyScraped: Boolean(input.skipPreviouslyScraped),
+    includeFailedProfiles: input.includeFailedProfiles !== false,
     dedupeStoreName: /^[a-z0-9-]{1,63}$/.test(input.dedupeStoreName ?? '') ? input.dedupeStoreName : 'instagram-lead-finder-seen',
 };
 const keywords = opts.keywordMatchMode === 'off' ? []
@@ -62,6 +63,10 @@ try {
     log.warning(`Proxy could not be configured (${err.message}). Running without a proxy — Instagram will likely block most requests.`);
 }
 const proxyGroups = input.proxyConfiguration?.apifyProxyGroups ?? [];
+const proxyLabel = !proxyConfiguration ? 'no proxy'
+    : input.proxyConfiguration?.useApifyProxy ? `Apify proxy (${proxyGroups.length ? proxyGroups.join(', ') : 'datacenter'})` : 'custom proxy';
+const residential = proxyGroups.includes('RESIDENTIAL');
+log.info(`Proxy: ${proxyLabel}`);
 if (!proxyConfiguration) log.warning('No proxy: limited to 60 requests/min. Instagram blocks datacenter IPs — use the Apify RESIDENTIAL proxy.');
 else if (input.proxyConfiguration?.useApifyProxy && !proxyGroups.includes('RESIDENTIAL')) {
     log.warning('Apify proxy without the RESIDENTIAL group: Instagram blocks most datacenter IPs. Switch to RESIDENTIAL if you see many blocks.');
@@ -91,6 +96,8 @@ const summary = stored.summary ?? {
     skipSamples: {},
     requests: { requests: 0, successes: 0, retries: 0, blocked: 0, networkErrors: 0, serverErrors: 0, linkRequests: 0 },
     contactsFromLinkPages: 0,
+    failedRowsSaved: 0,
+    proxyUsed: null,
     notes: { inputProfilesWithNoRelatedShown: 0 },
     fillRatesPct: {},
     fillCounts: {},
@@ -98,6 +105,7 @@ const summary = stored.summary ?? {
 };
 const done = new Set(stored.done ?? []);
 
+summary.proxyUsed = proxyLabel;
 summary.filtersUsed = {
     minFollowers: opts.minFollowers || null,
     maxFollowers: opts.maxFollowers || null,
@@ -152,6 +160,36 @@ const persistState = async () => {
 Actor.on('migrating', persistState);
 Actor.on('persistState', persistState);
 
+// ---------- Failed-profile rows (never charged) ----------
+// Every input gets a visible row, so a run never ends with an empty, unexplained Output tab.
+const proxyAdvice = residential ? '' : ` This run used ${proxyLabel} — switch Proxy configuration to Apify Proxy with the RESIDENTIAL group.`;
+function failureHint(status, err) {
+    if (status === 'blocked') {
+        return `Instagram refused every attempt for this profile (last reply: ${err?.details?.lastProblem ?? 'unknown'}).${proxyAdvice || ' Run it again — Instagram often lets the same profile through a few minutes later on new residential IPs.'}`;
+    }
+    if (status === 'not_found') return 'Instagram says this account does not exist, was renamed, or is restricted (age or region). Open the profile URL to check the spelling.';
+    if (status === 'invalid_input') return 'Not a valid Instagram username or profile URL. Use a handle like natgeo, @natgeo or https://www.instagram.com/natgeo/.';
+    return 'Unexpected error while fetching this profile. Run again; if it repeats, send the run log to the developer.';
+}
+let saveChain = Promise.resolve();
+const saveFailed = (fields) => {
+    if (!opts.includeFailedProfiles) return saveChain;
+    saveChain = saveChain.then(async () => {
+        await Actor.pushData({
+            status: fields.status,
+            username: fields.username ?? null,
+            profile_url: fields.username ? `https://www.instagram.com/${fields.username}/` : null,
+            error: fields.error,
+            fix_hint: failureHint(fields.status, fields.err),
+            source: fields.source ?? 'input',
+            input_value: fields.inputValue ?? null,
+            scraped_at: new Date().toISOString(),
+        }); // no event name -> not charged
+        summary.failedRowsSaved += 1;
+    });
+    return saveChain;
+};
+
 // ---------- Build the queue ----------
 const queue = [];
 const queued = new Set();
@@ -159,6 +197,7 @@ for (const raw of opts.usernames) {
     const username = normalizeUsername(raw);
     if (!username) {
         skip('invalid_username', String(raw));
+        saveFailed({ status: 'invalid_input', error: 'invalid username or URL', inputValue: String(raw) });
         continue;
     }
     if (queued.has(username)) {
@@ -187,7 +226,6 @@ function recordFill(row) {
 }
 
 // Saves are serialised so the max-results and max-cost checks are exact under concurrency.
-let saveChain = Promise.resolve();
 const save = (row, seedInfo) => {
     saveChain = saveChain.then(async () => {
         if (stopReason) {
@@ -298,9 +336,18 @@ async function processItem(item, session) {
             queue.unshift(item); // left for a resumed run
             return false;
         }
-        if (err instanceof NotFoundError) skip('not_found_or_unavailable', username);
-        else if (err instanceof BlockedError) skip('blocked_after_retries', `${username} (${err.message})`);
-        else skip('request_error', `${username} (${err.message})`);
+        const source = item.source === 'input' ? 'input' : `related:${item.seed}`;
+        if (err instanceof NotFoundError) {
+            skip('not_found_or_unavailable', username);
+            await saveFailed({ status: 'not_found', username, error: 'account not found', source, inputValue: item.inputValue });
+        } else if (err instanceof BlockedError) {
+            skip('blocked_after_retries', `${username} (${err.message})`);
+            log.warning(`@${username}: ${err.message}`);
+            await saveFailed({ status: 'blocked', username, error: err.message, err, source, inputValue: item.inputValue });
+        } else {
+            skip('request_error', `${username} (${err.message})`);
+            await saveFailed({ status: 'error', username, error: err.message, source, inputValue: item.inputValue });
+        }
         perSearch(item.seed).skipped += 1;
         return true;
     } finally {
@@ -392,7 +439,9 @@ await Actor.setValue('STATE', null);
 await saveSeen();
 logProgress(true);
 
-const statusMsg = `Saved ${summary.saved} profiles (${summary.savedWithContact} with contact). Skipped ${summary.skippedTotal}. Stop reason: ${stopReason}. See RUN_SUMMARY.`;
+const mainBlock = summary.saved === 0 && summary.skipReasons.blocked_after_retries
+    ? ` Instagram blocked the requests${residential ? '' : ` (proxy used: ${proxyLabel} — use RESIDENTIAL)`}.` : '';
+const statusMsg = `Saved ${summary.saved} profiles (${summary.savedWithContact} with contact). Skipped ${summary.skippedTotal}. Stop reason: ${stopReason}.${mainBlock} See RUN_SUMMARY.`;
 log.info(statusMsg);
 if (summary.saved === 0 && summary.requests.blocked > 0) {
     log.error('Instagram blocked the requests. Use the Apify proxy with the RESIDENTIAL group (Input → Proxy configuration).');

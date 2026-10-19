@@ -85,7 +85,7 @@ function makeUser(username, opts = {}) {
     };
 }
 
-export function startMock({ blockRate = 0.15, delayMs = 0 } = {}) {
+export function startMock({ blockRate = 0.15, delayMs = 0, blockDesktop = false } = {}) {
     const users = new Map();
     const hits = { api: 0, blocked: 0, links: 0, proxied: 0, perUser: {} };
     const alwaysBlocked = new Set(['blocked_forever']);
@@ -103,7 +103,8 @@ export function startMock({ blockRate = 0.15, delayMs = 0 } = {}) {
                 res.writeHead(400).end('{"message":"useragent mismatch","status":"fail"}');
                 return;
             }
-            if (alwaysBlocked.has(u) || rand() < blockRate) {
+            const isMobile = /^Instagram \d/.test(req.headers['user-agent'] ?? '');
+            if (alwaysBlocked.has(u) || rand() < blockRate || (blockDesktop && !isMobile)) {
                 hits.blocked += 1;
                 const kind = rand();
                 if (kind < 0.5) res.writeHead(429, { 'content-type': 'application/json' }).end('{"message":"Please wait a few minutes before you try again.","require_login":true,"status":"fail"}');

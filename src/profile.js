@@ -86,6 +86,7 @@ export function buildProfile(user, meta) {
     if (bizPhone) evidence.push(`${bizPhone} ← Instagram business contact (call button)`);
 
     const row = {
+        status: 'ok',
         username: user.username,
         full_name: plain(user.full_name).trim() || null,
         profile_url: `https://www.instagram.com/${user.username}/`,
@@ -138,6 +139,8 @@ export function buildProfile(user, meta) {
         })).filter((r) => r.username),
         related_profiles_count: 0,
         recent_posts: meta.includeRecentPosts ? posts.slice(0, meta.recentPostsLimit) : [],
+        error: null,
+        fix_hint: null,
         source: meta.source,
         input_value: meta.inputValue,
         scraped_at: new Date().toISOString(),

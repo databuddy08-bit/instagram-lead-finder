@@ -6,6 +6,7 @@
             "title": "Overview",
             "transformation": {
                 "fields": [
+                    "status",
                     "username",
                     "full_name",
                     "profile_url",
@@ -60,12 +61,18 @@
                     "user_id",
                     "source",
                     "input_value",
-                    "scraped_at"
+                    "scraped_at",
+                    "error",
+                    "fix_hint"
                 ]
             },
             "display": {
                 "component": "table",
                 "properties": {
+                    "status": {
+                        "label": "Status",
+                        "format": "text"
+                    },
                     "username": {
                         "label": "Username",
                         "format": "text"
@@ -285,6 +292,14 @@
                     "scraped_at": {
                         "label": "Scraped at",
                         "format": "date"
+                    },
+                    "error": {
+                        "label": "Error",
+                        "format": "text"
+                    },
+                    "fix_hint": {
+                        "label": "How to fix",
+                        "format": "text"
                     }
                 }
             }

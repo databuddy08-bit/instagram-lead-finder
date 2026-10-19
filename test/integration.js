@@ -37,11 +37,13 @@ async function runActor(name, input, { mock, env = {}, keepStorage = false, stor
     child.stderr.on('data', (d) => { logs += d; });
     const code = await new Promise((r) => child.on('close', r));
     writeFileSync(join(dir, `run-${name}.log`), logs);
-    const items = readDir(join(dir, 'datasets', 'default'));
+    const rows = readDir(join(dir, 'datasets', 'default'));
+    const items = rows.filter((x) => x.status === 'ok');
+    const failed = rows.filter((x) => x.status !== 'ok');
     const charges = readDir(join(dir, 'datasets', 'charging_log'));
     const summaryPath = join(dir, 'key_value_stores', 'default', 'RUN_SUMMARY.json');
     const summary = existsSync(summaryPath) ? JSON.parse(readFileSync(summaryPath, 'utf8')) : null;
-    return { code, items, charges, summary, logs, secs: Math.round((Date.now() - started) / 100) / 10 };
+    return { code, items, failed, charges, summary, logs, secs: Math.round((Date.now() - started) / 100) / 10 };
 }
 
 const results = [];
@@ -85,6 +87,8 @@ const seeds = ['seed_fitness', 'seed_travel', 'seed_shop'];
     check('no fake phones from "2012-2024 / 12345678"', r.items.filter((x) => /Est\. 2012/.test(x.biography ?? '')).every((x) => x.phones_found.length === 0));
     check('platform email support@linktr.ee never captured', r.items.every((x) => !x.all_emails.includes('support@linktr.ee')));
     check('every contact has evidence', r.items.every((x) => x.all_emails.length + x.all_phones.length <= x.contact_evidence.length));
+    check('failed inputs shown as uncharged rows with a fix hint', r.failed.length === 5 && r.failed.every((x) => x.fix_hint && x.error), JSON.stringify(r.failed.map((x) => x.status)));
+    check('charges only for ok rows', chargedTotal(r.charges) === r.items.length);
     check('progress logged every 50', (r.logs.match(/Progress: \d+ processed/g) ?? []).length >= 2);
     console.log('\nFill rates (% of saved rows):', JSON.stringify(s.fillRatesPct));
     const sample = r.items.find((x) => x.has_contact && x.emails_from_links.length && x.recent_posts.length) ?? r.items[0];
@@ -187,6 +191,28 @@ const seeds = ['seed_fitness', 'seed_travel', 'seed_shop'];
     const r = await runActor('allblocked', { usernames: generic, proxyConfiguration: proxy(mock) }, { mock });
     mock.close();
     check('gives up early with a clear reason, nothing charged', r.code === 0 && /blocking_all_requests/.test(r.summary.stopReason) && r.charges.length === 0, `${r.secs}s, ${r.summary.requests.requests} requests`);
+}
+
+// ---------- 8. Single profile that Instagram keeps blocking (the "no output at all" case) ----------
+{
+    console.log('\n=== 8. ONE PROFILE, ALWAYS BLOCKED ===');
+    const mock = await startMock({ blockRate: 0 });
+    const r = await runActor('single-blocked', { usernames: ['blocked_forever'], proxyConfiguration: proxy(mock) }, { mock });
+    mock.close();
+    const row = r.failed[0];
+    check('output still shows a row explaining why', r.code === 0 && r.failed.length === 1 && row.status === 'blocked', row?.error);
+    check('row tells the user to switch to RESIDENTIAL', /RESIDENTIAL/.test(row?.fix_hint ?? ''), row?.fix_hint);
+    check('all 12 attempts used, nothing charged', mock.hits.perUser.blocked_forever === 12 && r.charges.length === 0, `${mock.hits.perUser.blocked_forever} attempts`);
+    check('status message names the block', /blocked the requests/.test(r.logs));
+}
+
+// ---------- 9. Blocked on desktop style, works on mobile style ----------
+{
+    console.log('\n=== 9. ROTATING REQUEST STYLES ===');
+    const mock = await startMock({ blockRate: 0, blockDesktop: true });
+    const r = await runActor('mobile-fallback', { usernames: ['creator_001', 'creator_002'], proxyConfiguration: proxy(mock) }, { mock });
+    mock.close();
+    check('profiles saved via the mobile request style', r.items.length === 2, `${mock.hits.api} requests`);
 }
 
 const failed = results.filter((x) => !x.ok);

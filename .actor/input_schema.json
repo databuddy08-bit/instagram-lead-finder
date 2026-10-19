@@ -9,7 +9,11 @@
             "type": "array",
             "description": "One per line. Accepts plain handles (natgeo), handles with @ (@natgeo) or profile URLs (https://www.instagram.com/natgeo/). Duplicates are removed automatically.",
             "editor": "stringList",
-            "prefill": ["natgeo", "garyvee", "hubspot"],
+            "prefill": [
+                "natgeo",
+                "garyvee",
+                "hubspot"
+            ],
             "sectionCaption": "Profiles"
         },
         "maxResults": {
@@ -18,6 +22,12 @@
             "description": "Stop after this many profiles are saved (and charged). 0 = no limit.",
             "minimum": 0,
             "default": 0
+        },
+        "includeFailedProfiles": {
+            "title": "Show failed profiles in the results",
+            "type": "boolean",
+            "description": "Adds a row (status = blocked / not_found / invalid_input) for every profile that could not be scraped, with the reason and how to fix it. These rows are never charged.",
+            "default": true
         },
         "scrapeRelatedProfiles": {
             "title": "Also scrape related profiles (discovery)",
@@ -82,8 +92,20 @@
             "editor": "select",
             "items": {
                 "type": "string",
-                "enum": ["sub-nano", "nano", "micro", "macro", "mega"],
-                "enumTitles": ["Sub-nano (<1K)", "Nano (1K–10K)", "Micro (10K–100K)", "Macro (100K–1M)", "Mega (1M+)"]
+                "enum": [
+                    "sub-nano",
+                    "nano",
+                    "micro",
+                    "macro",
+                    "mega"
+                ],
+                "enumTitles": [
+                    "Sub-nano (<1K)",
+                    "Nano (1K–10K)",
+                    "Micro (10K–100K)",
+                    "Macro (100K–1M)",
+                    "Mega (1M+)"
+                ]
             },
             "default": []
         },
@@ -104,8 +126,18 @@
             "type": "string",
             "description": "Skip profiles below this grade. A = Hot (75–100), B = Warm (50–74), C = Cool (25–49), D = Cold (0–24).",
             "editor": "select",
-            "enum": ["A", "B", "C", "D"],
-            "enumTitles": ["A - Hot leads only", "B - Warm and better", "C - Cool and better", "D - Keep all grades"],
+            "enum": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "enumTitles": [
+                "A - Hot leads only",
+                "B - Warm and better",
+                "C - Cool and better",
+                "D - Keep all grades"
+            ],
             "default": "D"
         },
         "minEngagementRate": {
@@ -139,8 +171,18 @@
             "type": "string",
             "description": "Exact phrase: the words must appear together in order. All words: every word must appear anywhere. Any word: one word is enough. Off: ignore bio keywords.",
             "editor": "select",
-            "enum": ["exact", "all", "any", "off"],
-            "enumTitles": ["Exact phrase", "All words", "Any word", "Off"],
+            "enum": [
+                "exact",
+                "all",
+                "any",
+                "off"
+            ],
+            "enumTitles": [
+                "Exact phrase",
+                "All words",
+                "Any word",
+                "Off"
+            ],
             "default": "exact"
         },
         "skipPreviouslyScraped": {
@@ -165,14 +207,20 @@
             "editor": "proxy",
             "prefill": {
                 "useApifyProxy": true,
-                "apifyProxyGroups": ["RESIDENTIAL"]
+                "apifyProxyGroups": [
+                    "RESIDENTIAL"
+                ]
             },
             "default": {
                 "useApifyProxy": true,
-                "apifyProxyGroups": ["RESIDENTIAL"]
+                "apifyProxyGroups": [
+                    "RESIDENTIAL"
+                ]
             },
             "sectionCaption": "Proxy"
         }
     },
-    "required": ["usernames"]
+    "required": [
+        "usernames"
+    ]
 }

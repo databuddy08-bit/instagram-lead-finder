@@ -91,6 +91,8 @@ No login. No cookies. Export to CSV, Excel, JSON or connect through the API.
 }
 ```
 
+**Every input gets a row.** Profiles that can't be scraped appear with `status` = `blocked`, `not_found` or `invalid_input`, the exact `error` and a `fix_hint` telling you what to change. These rows are never charged (turn them off with `includeFailedProfiles: false`). Successful rows have `status` = `ok`.
+
 The dataset has three views: **Overview** (all fields), **Contacts only** and **Influencer metrics**.
 
 ### Lead score
@@ -135,6 +137,8 @@ Profiles that are not found, blocked, duplicated, already seen in a previous run
 **Why is engagement empty for some profiles?** Private accounts, accounts with no posts and accounts that hide like counts can't be measured. The field stays empty (never estimated) and `engagement_note` says why.
 
 **Why are related profiles empty?** Instagram doesn't show similar accounts for every profile to logged-out visitors. The summary counts how often this happened.
+
+**My run finished with no profiles.** Open the Output tab: each profile has a `status` and `fix_hint`. `blocked` almost always means the run wasn't on the RESIDENTIAL proxy group, or Instagram was rate-limiting at that moment — run again.
 
 **I'm getting blocked.** Use the Apify **RESIDENTIAL** proxy group. Blocked requests are retried on a new IP automatically.
 

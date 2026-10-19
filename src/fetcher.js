@@ -5,16 +5,28 @@ import { log } from 'apify';
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const IG_APP_ID = '936619743392459';
+const MOBILE_UA = 'Instagram 337.0.0.0.77 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; 609412000)';
 // IG_API_BASE is only used by the local test suite (mock Instagram server).
-const API_BASES = process.env.IG_API_BASE
-    ? [process.env.IG_API_BASE]
-    : ['https://www.instagram.com', 'https://i.instagram.com'];
+const WWW = process.env.IG_API_BASE ?? 'https://www.instagram.com';
+const API = process.env.IG_API_BASE ?? 'https://i.instagram.com';
+// Each retry uses a new IP and the next request style, so one blocked style doesn't sink the profile.
+const VARIANTS = [
+    { base: WWW, mobile: false },
+    { base: API, mobile: false },
+    { base: WWW, mobile: true },
+    { base: API, mobile: true },
+];
 
 const BLOCK_STATUSES = new Set([401, 403, 429, 999]);
 const SESSION_MAX_USES = 15; // rotate IP after this many successful requests
 
 export class NotFoundError extends Error {}
-export class BlockedError extends Error {}
+export class BlockedError extends Error {
+    constructor(message, details) {
+        super(message);
+        this.details = details;
+    }
+}
 export class StoppedError extends Error {}
 
 /** Spaces requests evenly so we never exceed N requests per minute (shared by all workers). */
@@ -64,7 +76,7 @@ export class InstagramClient {
         this.useProxy = Boolean(proxyConfiguration);
         this.limiter = new RateLimiter(this.useProxy ? 400 : 60);
         this.linkLimiter = new RateLimiter(this.useProxy ? 600 : 120);
-        this.maxRetries = this.useProxy ? 8 : 5;
+        this.maxRetries = this.useProxy ? 11 : 5; // 12 attempts with a proxy
         this.stats = stats;
         this.shouldStop = shouldStop;
         this.msLeft = msLeft;
@@ -85,37 +97,50 @@ export class InstagramClient {
     /** Returns Instagram's raw `user` object, or throws NotFoundError / BlockedError / StoppedError. */
     async fetchProfile(username, session) {
         let lastProblem = 'unknown';
+        const problems = {};
+        const note = (p) => {
+            lastProblem = p;
+            problems[p] = (problems[p] ?? 0) + 1;
+        };
         for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
             if (this.shouldStop()) throw new StoppedError('stopping');
             await this.limiter.wait();
-            const base = API_BASES[attempt % API_BASES.length];
-            const url = `${base}/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`;
+            const variant = VARIANTS[attempt % VARIANTS.length];
+            const url = `${variant.base}/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`;
             this.stats.requests += 1;
             if (attempt > 0) this.stats.retries += 1;
 
             let response;
             try {
+                const style = variant.mobile
+                    ? {
+                        useHeaderGenerator: false,
+                        headers: { 'user-agent': MOBILE_UA, 'x-ig-app-id': IG_APP_ID, accept: '*/*', 'accept-language': 'en-US' },
+                    }
+                    : {
+                        headers: {
+                            'x-ig-app-id': IG_APP_ID,
+                            'x-requested-with': 'XMLHttpRequest',
+                            accept: '*/*',
+                            referer: `https://www.instagram.com/${username}/`,
+                        },
+                        headerGeneratorOptions: {
+                            browsers: [{ name: 'chrome', minVersion: 120 }],
+                            devices: ['desktop'],
+                            operatingSystems: ['windows', 'macos'],
+                        },
+                    };
                 response = await gotScraping({
                     url,
                     proxyUrl: await this.proxyUrl(session),
-                    headers: {
-                        'x-ig-app-id': IG_APP_ID,
-                        'x-requested-with': 'XMLHttpRequest',
-                        accept: '*/*',
-                        referer: `https://www.instagram.com/${username}/`,
-                    },
-                    headerGeneratorOptions: {
-                        browsers: [{ name: 'chrome', minVersion: 120 }],
-                        devices: ['desktop'],
-                        operatingSystems: ['windows', 'macos'],
-                    },
+                    ...style,
                     followRedirect: false,
                     throwHttpErrors: false,
                     retry: { limit: 0 },
                     timeout: { request: 20000 },
                 });
             } catch (err) {
-                lastProblem = `network: ${err.code || err.message}`;
+                note(`network error ${err.code || err.message}`);
                 this.stats.networkErrors += 1;
                 session.rotate();
                 await this.retryDelay(attempt);
@@ -142,17 +167,19 @@ export class InstagramClient {
                 || (statusCode >= 300 && statusCode < 400)
                 || json?.require_login === true
                 || (statusCode === 200 && !json);
+            const igMessage = json?.message ? ` "${String(json.message).slice(0, 80)}"` : '';
             if (blocked) {
                 this.stats.blocked += 1;
-                lastProblem = `blocked (HTTP ${statusCode}${json?.message ? `: ${json.message}` : ''})`;
+                note(statusCode >= 300 && statusCode < 400 ? `HTTP ${statusCode} redirect to login` : `HTTP ${statusCode}${igMessage}`);
             } else {
                 this.stats.serverErrors += 1;
-                lastProblem = `HTTP ${statusCode}`;
+                note(`HTTP ${statusCode}${igMessage}`);
             }
             session.rotate(); // retire session -> next attempt gets a new IP
             if (attempt < this.maxRetries) await this.retryDelay(attempt);
         }
-        throw new BlockedError(lastProblem);
+        const breakdown = Object.entries(problems).map(([p, n]) => `${n}× ${p}`).join('; ');
+        throw new BlockedError(`all ${this.maxRetries + 1} attempts failed (${breakdown})`, { lastProblem, problems });
     }
 
     /** Fetches a link-in-bio / website page as text. Returns null on any failure (never throws). */
